@@ -11,7 +11,7 @@ Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadw
 
 [![Preview](https://raw.githubusercontent.com/dickyfp6/psoooo/main/preview.png)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)
 
----
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 
 ## 📌 Scope & Objectives
 
@@ -24,8 +24,8 @@ Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadw
   - Otomatisasi build, test, dan deploy
   - Monitoring kesehatan deployment
   - Fleksibilitas untuk dikembangkan lebih lanjut (eks: login, integrasi SSO)
----
 
+---
 ## 🛠️ CI/CD Pipeline Architecture
 
 ```mermaid
@@ -52,26 +52,103 @@ graph TD
     F1 --> F2[Deploy to Azure Web App]
 ````
 ---
+## 🔄 CI/CD Workflow
+### 🧭 Diagram Alur CI/CD
+<p align="center">  <img src="./docs/ci-cd-workflow.jpg" alt="CI/CD Workflow Diagram" width="700"/> </p>
+> Diagram ini menggambarkan orkestrasi proses Continuous Integration dan Continuous Deployment (CI/CD) pada aplikasi CCWS Room Reservation berbasis Next.js, Supabase, dan Azure.
+
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+
+### 🛠️ Tahapan Alur CI/CD
+
+CI/CD pipeline dibangun menggunakan **GitHub Actions** dan terdiri atas tiga tahapan utama: *Test*, *Build*, dan *Deploy*. Pipeline di-trigger secara otomatis setiap kali terjadi push ke branch `main`, memastikan *delivery* yang cepat dan minim error.
+
+#### 1. **CI/CD – Testing Stage**
+
+> *Tujuan: Menjamin kualitas kode dengan menjalankan automated tests*
+
+* ✅ **Framework Testing:** Menggunakan **Jest** dan/atau **Vitest** untuk unit test dan coverage analysis.
+* 🔍 **Linting:** ESLint dijalankan untuk memastikan kualitas dan konsistensi coding style.
+* 📂 **File yang terlibat:**
+
+  * `jest.config.js`, `jest.setup.js`, `vitest.config.js`
+  * `.eslintrc.json`
+  * `components/`, `lib/`, `app/`
+
+📌 *Jika terdapat kegagalan di tahap ini, proses akan dihentikan dan deployment tidak dilakukan.*
+
+#### 2. **CI/CD – Build Stage**
+
+> *Tujuan: Membangun dan mengemas aplikasi ke dalam Docker container*
+
+* ⚙️ **Build Tools:**
+
+  * **Next.js**: Membuat static dan server-rendered output
+  * **Vite** *(opsional)*: Untuk dev build preview
+* 🐳 **Docker Build:**
+
+  * Image dibuat menggunakan `dockerfile` dengan konfigurasi Next.js production build
+  * Image disimpan dan didorong ke **Azure Container Registry**
+* 📂 **File yang terlibat:**
+
+  * `dockerfile`, `.dockerignore`
+  * `next.config.mjs`, `vite.config.ts`
+  * `tailwind.config.js`, `babel.config.js`
+
+---
+
+#### 3. **CI/CD – Deployment Stage**
+
+> *Tujuan: Mendeliver image yang telah dibangun ke lingkungan produksi (Azure App Service)*
+
+* ☁️ **Platform:** Azure App Service
+* 🔐 **Autentikasi:** Menggunakan *Publish Profile* (`AZURE_WEBAPP_PUBLISH_PROFILE`) yang disimpan sebagai GitHub Secret.
+* 🚢 **Deployment:** Menarik image dari Azure Container Registry dan menjalankan container sebagai instance live.
+* 📂 **File yang terlibat:**
+
+  * `ci-cd.yaml` di dalam `.github/workflows`
+  * Secrets GitHub (`AZURE_REGISTRY_URL`, `AZURE_WEBAPP_PUBLISH_PROFILE`, dll.)
+
+---
+
+### ⚙️ Teknologi yang Terlibat
+
+| Komponen          | Teknologi                      |
+| ----------------- | ------------------------------ |
+| Source Control    | Git + GitHub                   |
+| Build Tool        | Next.js, Vite                  |
+| Styling           | Tailwind CSS                   |
+| Backend           | Supabase                       |
+| Containerization  | Docker                         |
+| CI/CD Engine      | GitHub Actions                 |
+| Registry          | Azure Container Registry (ACR) |
+| Deployment Target | Azure App Service              |
+
+---
+
+### 🔐 Keamanan & Best Practice
+
+* `.env.local` disertakan dalam `.gitignore` untuk mencegah kebocoran secrets.
+* Semua secrets disimpan di GitHub Secrets, tidak ditulis langsung dalam workflow.
+* Setiap tahap pipeline bersifat *fail-fast*, mencegah perubahan berbahaya ke production.
+* Konfigurasi linting & testing ketat untuk menjaga standar kualitas kode.
+
+---
 
 ## ⚙️ Alur Kerja Pipeline CI/CD
 
 Pipeline ini dibagi menjadi **tiga tahap utama**: `test`, `build`, dan `deploy`. Masing-masing job memiliki tanggung jawab spesifik dan saling bergantung satu sama lain untuk memastikan integritas sistem sebelum live.
 
--
-
+---
 ### 🧪 **Job: test** (Continuous Integration)
 
 Job `test` bertanggung jawab untuk **memverifikasi kualitas dan fungsionalitas kode** sebelum masuk ke tahap build dan deploy.
-
 1. **Checkout repository**
    Kode dari repositori diambil dan disiapkan untuk eksekusi.
-
 2. **Setup Node.js**
    Menyiapkan environment Node.js versi **18.x**.
-
 3. **Install dependencies**
    Menggunakan `npm ci` untuk instalasi yang bersih dan konsisten dengan `package-lock.json`.
-
 4. **Run tests**
    Menjalankan pengujian menggunakan `npm run test` untuk memastikan fungsionalitas berjalan dengan benar.
 
@@ -80,31 +157,22 @@ Job `test` bertanggung jawab untuk **memverifikasi kualitas dan fungsionalitas k
 ### 🏗️ **Job: build** (Build Container Image)
 
 Job `build` hanya dijalankan setelah `test` berhasil. Job ini membuat aplikasi production-ready dalam bentuk Docker image.
-
 1. **Checkout repository**
    Kode diambil kembali untuk proses build.
-
 2. **Setup Node.js**
    Menyiapkan environment Node.js versi 18.
-
 3. **Install dependencies**
    Melakukan instalasi dependensi seperti pada tahap test.
-
 4. **Build Next.js app**
    Menjalankan `npm run build` untuk membundel aplikasi dalam mode produksi.
-
 5. **Check Next.js version**
    Memverifikasi versi framework yang digunakan.
-
 6. **Login ke Azure Container Registry (ACR)**
    Autentikasi ke ACR menggunakan `AZURE_REGISTRY_USERNAME` dan `AZURE_REGISTRY_PASSWORD` dari GitHub Secrets.
-
 7. **Build Docker image**
    Membuat image dengan tag `latest` yang ditujukan ke URL registri ACR.
-
 8. **Push image ke ACR**
    Mendorong Docker image ke **Azure Container Registry** untuk siap di-deploy.
-
 ---
 
 ### 🚀 **Job: deploy** (Continuous Deployment)
@@ -113,28 +181,14 @@ Job `deploy` adalah tahap akhir yang dilakukan setelah build sukses. Proses ini 
 
 1. **Checkout repository**
    Mengambil ulang kode dari repository.
-
 2. **Deploy to Azure Web App**
    Menggunakan GitHub Action `azure/webapps-deploy@v2`.
-
    * **app-name**: `CCWSRESERVE`
    * **slot-name**: `Production`
    * **publish-profile**: Menggunakan `AZURE_WEBAPP_PUBLISH_PROFILE` dari GitHub Secrets
    * **images**: `nextjs-app:latest` dari `AZURE_REGISTRY_URL`
 
-
-## ⚙️ Implementasi Pipeline
-
-Berikut versi **“Implementasi Pipeline”** yang dibagi per *sub-poin*—setiap job punya:
-
-1. **Struktur file yang paling relevan**
-2. **Cuplikan YAML** (hanya bagian job itu)
-3. **Penjelasan tahap demi tahap**
-
-Salin blok ini menggantikan bagian yang lama di README-mu. 👇
-
 ---
-
 ## ⚙️ Implementasi Pipeline
 
 ### 1️⃣ Job `test` – Continuous Integration
