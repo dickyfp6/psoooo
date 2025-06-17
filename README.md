@@ -125,81 +125,134 @@ Job `deploy` adalah tahap akhir yang dilakukan setelah build sukses. Proses ini 
 
 ## ⚙️ Implementasi Pipeline
 
-### Struktur File
+Berikut versi **“Implementasi Pipeline”** yang dibagi per *sub-poin*—setiap job punya:
 
-```bash
-roomreservation/
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml
-├── Dockerfile
-├── next.config.js
-├── package.json
-└── ...
-```
+1. **Struktur file yang paling relevan**
+2. **Cuplikan YAML** (hanya bagian job itu)
+3. **Penjelasan tahap demi tahap**
 
-### Cuplikan `ci-cd.yml`
+Salin blok ini menggantikan bagian yang lama di README-mu. 👇
+
+---
+
+## ⚙️ Implementasi Pipeline
+
+### 1️⃣ Job `test` – Continuous Integration
+
+#### 📁 Struktur File Terkait
+
+| File/Folder                        | Peran di Job `test`                      |
+| ---------------------------------- | ---------------------------------------- |
+| `.github/workflows/ci-cd.yaml`     | Mendefinisikan job `test`                |
+| `jest.config.js` & `jest.setup.js` | Konfigurasi dan bootstrap unit-test      |
+| `vitest.config.js` *(opsional)*    | Alternatif framework test                |
+| `.eslintrc.json`                   | Quality-gate linting (jika dipanggil)    |
+| `package.json`                     | Script `npm run test`, daftar dependensi |
+
+#### 📝 Cuplikan CI-test
 
 ```yaml
-name: Next.js CI
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        run: npm ci
-      - name: Run tests
-        run: npm run test
-
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Install dependencies
-        run: npm ci
-      - name: Build Next.js app
-        run: npm run build
-      - name: Check Next.js version
-        run: npx next --version
-      - name: Log in to Azure Container Registry
-        run: echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login ${{ secrets.AZURE_REGISTRY_URL }} -u ${{ secrets.AZURE_REGISTRY_USERNAME }} --password-stdin
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest .
-      - name: Push Docker image to ACR
-        run: docker push ${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: CCWSRESERVE
-          slot-name: Production
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: '${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest'
+test:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with: { node-version: '18' }
+    - run: npm ci           # instal dependensi bersih
+    - run: npm run test     # jalankan unit-test
 ```
 
+#### 🚦 Tahap Eksekusi
+1. **Checkout repo** – code di-pull ke runner.
+2. **Setup Node.js 18** – environment konsisten.
+3. **Install dependencies** – `npm ci` memastikan versi luk-in.
+4. **Run tests** – menjalankan Jest/Vitest; workflow gagal bila ada tes gagal.
+
+---
+
+### 2️⃣ Job `build` – Build Container Image
+#### 📁 Struktur File Terkait
+
+| File                                     | Fungsi                              |
+| ---------------------------------------- | ----------------------------------- |
+| `dockerfile`                             | Instruksi pembuatan image prod      |
+| `.dockerignore`                          | Mengecilkan konteks build           |
+| `next.config.mjs` & `tailwind.config.js` | Konfigurasi build Next.js & styling |
+| `package.json`                           | Script `npm run build`              |
+| `.github/workflows/ci-cd.yaml`           | Bagian job `build`                  |
+
+#### 📝 Cuplikan CI-build
+
+```yaml
+build:
+  runs-on: ubuntu-latest
+  needs: test
+  steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with: { node-version: '18' }
+    - run: npm ci
+    - run: npm run build                 # Next.js production build
+    - run: npx next --version            # verifikasi versi
+    - name: Login ACR
+      run: echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" |
+           docker login ${{ secrets.AZURE_REGISTRY_URL }} \
+           -u ${{ secrets.AZURE_REGISTRY_USERNAME }} --password-stdin
+    - run: docker build -t ${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest .
+    - run: docker push  ${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest
+```
+
+#### 🚦 Tahap Eksekusi
+
+1. **Dependensi Node** dipasang ulang (aman setelah lint/test).
+2. **Build Next.js** – `npm run build` menghasilkan output prod di `.next/`.
+3. **Login ke ACR** menggunakan secrets.
+4. **Docker build & push** – image bertag `latest` dikirim ke registry.
+
+---
+
+### 3️⃣ Job `deploy` – Continuous Deployment
+
+#### 📁 Struktur File Terkait
+
+| File/Secret                    | Peran                                           |
+| ------------------------------ | ----------------------------------------------- |
+| `ci-cd.yaml`                   | Bagian job `deploy`                             |
+| `AZURE_WEBAPP_PUBLISH_PROFILE` | Autentikasi deploy (GitHub Secret)              |
+| `AZURE_REGISTRY_URL`           | Lokasi image di ACR                             |
+| `dockerfile`                   | Basis container yang akan dijalankan oleh Azure |
+
+#### 📝 Cuplikan YAML
+
+```yaml
+deploy:
+  runs-on: ubuntu-latest
+  needs: build
+  steps:
+    - uses: actions/checkout@v3
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: CCWSRESERVE
+        slot-name: Production
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        images: '${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest'
+```
+
+#### 🚦 Tahap Eksekusi
+
+1. **Checkout repo** (tidak wajib sebenarnya, tapi berguna untuk log).
+2. **Deploy ke Azure Web App** via action resmi:
+
+   * Menargetkan **app** `CCWSRESERVE`, slot **Production**.
+   * Menarik image `nextjs-app:latest` dari ACR.
+   * Azure menjalankan container & melakukan health check otomatis.
+
+---
+### 🧩 Catatan Penting
+
+* **Fail-fast:** Jika `test` gagal, `build` & `deploy` berhenti ➜ menjaga integritas prod.
+* **Secrets**: Semua kredensial (ACR & publish profile) disimpan di **GitHub Secrets**, tidak pernah ditulis di kode.
+* **Scalability:** Azure Web App mendukung slot deployment & auto-scaling; image dapat dipromosikan tanpa downtime.
 ---
 
 ## 🧪 Error / Issue GitHub Actions
