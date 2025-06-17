@@ -25,8 +25,9 @@ Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadw
   - Fleksibilitas untuk dikembangkan lebih lanjut (eks: login, integrasi SSO)
 
 ---
-## 🛠️ CI/CD Pipeline Architecture
+## 🏗️ System Architecture
 
+Arsitektur sistem ini dirancang untuk mendukung alur kerja pengembangan web modern berbasis **Next.js**, dengan integrasi ke pipeline **CI/CD** otomatis menggunakan **GitHub Actions** serta deployment ke **Azure Web App Service**.
 ```mermaid
 graph TD
     A[Developer Push Code] --> B[GitHub Repository]
@@ -50,6 +51,35 @@ graph TD
     F --> F1[Checkout Repo]
     F1 --> F2[Deploy to Azure Web App]
 ````
+### 🧱 Komponen Utama Arsitektur:
+
+1. **Frontend & Backend (Next.js Fullstack)**
+
+   * Merupakan inti dari aplikasi, yang menggabungkan UI (React), API Routes (Serverless Functions), dan konfigurasi build modern menggunakan **Tailwind CSS**, **Vite**, serta modul modular di `components/`, `lib/`, dan `pages/`.
+
+2. **Version Control: GitHub**
+
+   * Semua perubahan kode dilakukan melalui Git dan disimpan dalam GitHub repository.
+   * Setiap `push` ke branch `main` secara otomatis memicu pipeline CI/CD.
+
+3. **CI/CD: GitHub Actions**
+
+   * Pipeline dibagi menjadi tiga job utama:
+
+     * `Test Job`: Mengeksekusi unit test menggunakan Jest/Vitest.
+     * `Build Job`: Melakukan build Next.js dan membangun Docker image.
+     * `Deploy Job`: Melakukan deployment ke Azure setelah build berhasil.
+
+4. **Containerization: Docker + ACR**
+
+   * Aplikasi dibungkus dalam Docker image.
+   * Image didorong ke **Azure Container Registry (ACR)**.
+
+5. **Deployment: Azure App Service**
+
+   * Azure Web App akan menarik image terbaru dari ACR untuk di-deploy secara otomatis.
+   * Publish dilakukan via **Publish Profile** yang disimpan aman dalam GitHub Secrets.
+
 ---
 
 ## 🔄 CI/CD Workflow
