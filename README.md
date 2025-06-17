@@ -11,8 +11,7 @@ Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadw
 
 [![Preview](https://raw.githubusercontent.com/dickyfp6/psoooo/main/preview.png)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)
 
-▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-
+---
 ## 📌 Scope & Objectives
 
 - **Lingkup**:
@@ -52,16 +51,25 @@ graph TD
     F1 --> F2[Deploy to Azure Web App]
 ````
 ---
+
 ## 🔄 CI/CD Workflow
+
 ### 🧭 Diagram Alur CI/CD
-<p align="center">  <img src="./docs/ci-cd-workflow.jpg" alt="CI/CD Workflow Diagram" width="700"/> </p>
+
+<p align="center">
+  <img src="preview.png" alt="CI/CD Workflow Diagram" width="700"/>
+</p>
+
 > Diagram ini menggambarkan orkestrasi proses Continuous Integration dan Continuous Deployment (CI/CD) pada aplikasi CCWS Room Reservation berbasis Next.js, Supabase, dan Azure.
 
-▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+---
 
 ### 🛠️ Tahapan Alur CI/CD
 
 CI/CD pipeline dibangun menggunakan **GitHub Actions** dan terdiri atas tiga tahapan utama: *Test*, *Build*, dan *Deploy*. Pipeline di-trigger secara otomatis setiap kali terjadi push ke branch `main`, memastikan *delivery* yang cepat dan minim error.
+
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+
 
 #### 1. **CI/CD – Testing Stage**
 
@@ -76,6 +84,9 @@ CI/CD pipeline dibangun menggunakan **GitHub Actions** dan terdiri atas tiga tah
   * `components/`, `lib/`, `app/`
 
 📌 *Jika terdapat kegagalan di tahap ini, proses akan dihentikan dan deployment tidak dilakukan.*
+
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+
 
 #### 2. **CI/CD – Build Stage**
 
@@ -95,7 +106,7 @@ CI/CD pipeline dibangun menggunakan **GitHub Actions** dan terdiri atas tiga tah
   * `next.config.mjs`, `vite.config.ts`
   * `tailwind.config.js`, `babel.config.js`
 
----
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 
 #### 3. **CI/CD – Deployment Stage**
 
@@ -124,7 +135,7 @@ CI/CD pipeline dibangun menggunakan **GitHub Actions** dan terdiri atas tiga tah
 | Registry          | Azure Container Registry (ACR) |
 | Deployment Target | Azure App Service              |
 
----
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 
 ### 🔐 Keamanan & Best Practice
 
@@ -132,14 +143,14 @@ CI/CD pipeline dibangun menggunakan **GitHub Actions** dan terdiri atas tiga tah
 * Semua secrets disimpan di GitHub Secrets, tidak ditulis langsung dalam workflow.
 * Setiap tahap pipeline bersifat *fail-fast*, mencegah perubahan berbahaya ke production.
 * Konfigurasi linting & testing ketat untuk menjaga standar kualitas kode.
-
 ---
 
 ## ⚙️ Alur Kerja Pipeline CI/CD
 
 Pipeline ini dibagi menjadi **tiga tahap utama**: `test`, `build`, dan `deploy`. Masing-masing job memiliki tanggung jawab spesifik dan saling bergantung satu sama lain untuk memastikan integritas sistem sebelum live.
 
----
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+
 ### 🧪 **Job: test** (Continuous Integration)
 
 Job `test` bertanggung jawab untuk **memverifikasi kualitas dan fungsionalitas kode** sebelum masuk ke tahap build dan deploy.
@@ -152,7 +163,7 @@ Job `test` bertanggung jawab untuk **memverifikasi kualitas dan fungsionalitas k
 4. **Run tests**
    Menjalankan pengujian menggunakan `npm run test` untuk memastikan fungsionalitas berjalan dengan benar.
 
----
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 
 ### 🏗️ **Job: build** (Build Container Image)
 
@@ -173,7 +184,8 @@ Job `build` hanya dijalankan setelah `test` berhasil. Job ini membuat aplikasi p
    Membuat image dengan tag `latest` yang ditujukan ke URL registri ACR.
 8. **Push image ke ACR**
    Mendorong Docker image ke **Azure Container Registry** untuk siap di-deploy.
----
+
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 
 ### 🚀 **Job: deploy** (Continuous Deployment)
 
@@ -222,7 +234,8 @@ test:
 3. **Install dependencies** – `npm ci` memastikan versi luk-in.
 4. **Run tests** – menjalankan Jest/Vitest; workflow gagal bila ada tes gagal.
 
----
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+
 
 ### 2️⃣ Job `build` – Build Container Image
 #### 📁 Struktur File Terkait
@@ -263,7 +276,7 @@ build:
 3. **Login ke ACR** menggunakan secrets.
 4. **Docker build & push** – image bertag `latest` dikirim ke registry.
 
----
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 
 ### 3️⃣ Job `deploy` – Continuous Deployment
 
@@ -301,7 +314,8 @@ deploy:
    * Menarik image `nextjs-app:latest` dari ACR.
    * Azure menjalankan container & melakukan health check otomatis.
 
----
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+
 ### 🧩 Catatan Penting
 
 * **Fail-fast:** Jika `test` gagal, `build` & `deploy` berhenti ➜ menjaga integritas prod.
@@ -331,12 +345,11 @@ npm run dev
 
 ---
 
-## 🙋‍♀️ Maintainers
-
-* Arayzi Rayyansyah       (5026221194)
-* Dicky Febri Primadhani  (5026221036)
-* M. Rafi Novyansyah      (5026221171)
-* Arya Satya Widyatna     (5026221207)
+## 🙋‍♀️ Developers
+* Arayzi Rayyansyah       (5026221194) - Lead
+* Dicky Febri Primadhani  (5026221036) - Member
+* M. Rafi Novyansyah      (5026221171) - Member
+* Arya Satya Widyatna     (5026221207) - Member
 
 ---
 
