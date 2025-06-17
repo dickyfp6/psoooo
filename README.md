@@ -36,21 +36,77 @@ flowchart LR
     F --> G[User Access Web App]
 ````
 
-### Alur Kerja CI/CD Pipeline:
 
-1. **Version Control**: commit & merge ke branch `main`
-2. **Web Development**: build Next.js (frontend & API)
-3. **Cloud Integration**: push image ke Azure Container Registry
-4. **CI/CD Actions**:
+## ⚙️ Alur Kerja Pipeline CI/CD
 
-   * `npm ci` & `next build`
-   * Build & push Docker image
-   * Deploy image ke Azure App Service
-5. **Deployment Final**:
+Pipeline ini dibagi menjadi **tiga tahap utama**: `test`, `build`, dan `deploy`. Masing-masing job memiliki tanggung jawab spesifik dan saling bergantung satu sama lain untuk memastikan integritas sistem sebelum live.
 
-   * Health check & notifikasi
-   * Auto-scaling & slot deployment
+---
 
+### 🧪 **Job: test** (Continuous Integration)
+
+Job `test` bertanggung jawab untuk **memverifikasi kualitas dan fungsionalitas kode** sebelum masuk ke tahap build dan deploy.
+
+1. **Checkout repository**
+   Kode dari repositori diambil dan disiapkan untuk eksekusi.
+
+2. **Setup Node.js**
+   Menyiapkan environment Node.js versi **18.x**.
+
+3. **Install dependencies**
+   Menggunakan `npm ci` untuk instalasi yang bersih dan konsisten dengan `package-lock.json`.
+
+4. **Run tests**
+   Menjalankan pengujian menggunakan `npm run test` untuk memastikan fungsionalitas berjalan dengan benar.
+
+---
+
+### 🏗️ **Job: build** (Build Container Image)
+
+Job `build` hanya dijalankan setelah `test` berhasil. Job ini membuat aplikasi production-ready dalam bentuk Docker image.
+
+1. **Checkout repository**
+   Kode diambil kembali untuk proses build.
+
+2. **Setup Node.js**
+   Menyiapkan environment Node.js versi 18.
+
+3. **Install dependencies**
+   Melakukan instalasi dependensi seperti pada tahap test.
+
+4. **Build Next.js app**
+   Menjalankan `npm run build` untuk membundel aplikasi dalam mode produksi.
+
+5. **Check Next.js version**
+   Memverifikasi versi framework yang digunakan.
+
+6. **Login ke Azure Container Registry (ACR)**
+   Autentikasi ke ACR menggunakan `AZURE_REGISTRY_USERNAME` dan `AZURE_REGISTRY_PASSWORD` dari GitHub Secrets.
+
+7. **Build Docker image**
+   Membuat image dengan tag `latest` yang ditujukan ke URL registri ACR.
+
+8. **Push image ke ACR**
+   Mendorong Docker image ke **Azure Container Registry** untuk siap di-deploy.
+
+---
+
+### 🚀 **Job: deploy** (Continuous Deployment)
+
+Job `deploy` adalah tahap akhir yang dilakukan setelah build sukses. Proses ini akan menjadikan aplikasi live di Azure.
+
+1. **Checkout repository**
+   Mengambil ulang kode dari repository.
+
+2. **Deploy to Azure Web App**
+   Menggunakan GitHub Action `azure/webapps-deploy@v2`.
+
+   * **app-name**: `CCWSRESERVE`
+   * **slot-name**: `Production`
+   * **publish-profile**: Menggunakan `AZURE_WEBAPP_PUBLISH_PROFILE` dari GitHub Secrets
+   * **images**: `nextjs-app:latest` dari `AZURE_REGISTRY_URL`
+
+👉 Hasil dari tahap ini adalah **aplikasi dapat diakses secara publik** melalui Azure Web App yang telah dikonfigurasi.
 ---
 
 ## ⚙️ Implementasi Pipeline
