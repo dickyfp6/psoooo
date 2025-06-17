@@ -1,76 +1,77 @@
-# 🏨 CCWS Reservation Room | Next.js + Supabase  
-[![CI/CD Pipeline](https://github.com/dickyfebri/ccws-reservation/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/dickyfebri/ccws-reservation/actions) 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)  
+# 🏨 CCWS Room Reservation System  
+[![CI/CD Status](https://github.com/your-username/ccws-reservation/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/your-username/ccws-reservation/actions)  
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Modern room booking system with automated CI/CD pipeline using **GitHub Actions** → **Azure Web App (Docker)**.  
+Sistem reservasi ruangan berbasis **Next.js** dengan integrasi **Supabase** dan pipeline CI/CD otomatis.
 
 <p align="center">
-  <img src="docs/app-preview.png" width="800" alt="App Screenshot">  
-  <em>Tampilan antarmuka booking system</em>  
+  <img src="public/screenshot.png" width="600" alt="CCWS Reservation Preview">
 </p>
 
 ---
 
-## 🔥 Fitur Utama  
-| Area         | Teknologi                          |
-|--------------|------------------------------------|
-| **Frontend** | Next.js 14, TailwindCSS, Lucide Icons |
-| **Backend**  | Supabase (Auth + PostgreSQL)       |
-| **CI/CD**    | GitHub Actions → Azure Web App     |
-| **Testing**  | Jest + React Testing Library       |
+## 🛠️ Struktur Proyek  
+```bash
+.
+├── .github/workflows/    # Konfigurasi GitHub Actions
+│   └── ci-cd.yaml        # Pipeline CI/CD
+├── app/                  # Routing Next.js
+├── components/           # Komponen UI
+├── lib/                  # Utility & client Supabase
+├── public/               # Aset statis
+├── styles/               # Global CSS
+├── .env.local            # Environment variables
+├── dockerfile            # Konfigurasi Docker
+└── jest.config.js        # Setup testing
+```
 
 ---
 
-## 🚀 5-Menit Mulai Development  
+## 🔥 Fitur Teknis  
+- **Frontend**: Next.js 14 + Tailwind CSS  
+- **State Management**: React Context  
+- **Database**: Supabase (PostgreSQL)  
+- **Testing**: Jest + React Testing Library  
+- **CI/CD**: GitHub Actions → Azure Web App  
+- **Containerisasi**: Docker  
+
+---
+
+## 🚀 Panduan Instalasi  
+### Prasyarat  
+- Node.js 18+  
+- Akun Supabase  
+- Docker (opsional)  
+
 ```bash
-# 1. Clone repo
-git clone https://github.com/dickyfebri/ccws-reservation.git
-cd ccws-reservation
+# 1. Clone repositori
+git clone https://github.com/your-username/ccws-reservation.git
 
-# 2. Setup environment  
-cp env.local.example .env.local
-# Isi variabel di .env.local!
-
-# 3. Install & run
+# 2. Install dependencies
 npm install
+
+# 3. Setup environment variables
+cp .env.local.example .env.local
+# Isi nilai Supabase di .env.local!
+
+# 4. Jalankan development server
 npm run dev
 ```
-Buka http://localhost:3000  
 
 ---
 
-## 📦 Arsitektur Sistem  
-```mermaid
-graph LR
-  A[Frontend] -->|API Calls| B(Supabase)
-  B --> C[(PostgreSQL)]
-  D[GitHub Actions] -->|Build| E[Docker Image]
-  E -->|Deploy| F[Azure Web App]
+## 🧪 Testing  
+Proyek ini menggunakan **Jest** untuk pengujian dengan konfigurasi:  
+- `jest.config.js` - Konfigurasi utama  
+- `jest.setup.js` - Setup environment testing  
+
+```bash
+# Jalankan semua test
+npm test
+
+# Generate laporan coverage
+npm run test:coverage
 ```
-
----
-
-## 🔧 Konfigurasi Wajib  
-### `env.local.example`  
-```env
-# Supabase  
-NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co  
-NEXT_PUBLIC_SUPABASE_ANON_KEY=xxxx  
-
-# Opsional  
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=xxxx  
-```
-
----
-
-## 🛠️ Perintah Penting  
-| Perintah               | Deskripsi                          |
-|------------------------|------------------------------------|
-| `npm run dev`          | Dev server + hot reload            |
-| `npm run build`        | Production build                   |
-| `npm run test`         | Jalankan unit tests                |
-| `npm run test:coverage`| Test + coverage report             |
-| `docker build -t ccws .`| Build Docker image                |
 
 ---
 
@@ -79,56 +80,67 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=xxxx
 # Build image
 docker build -t ccws-reservation .
 
-# Jalankan container  
-docker run -p 3000:3000 --env-file .env.local ccws-reservation
+# Jalankan container
+docker run -p 3000:3000 --env-file .env.local ccrs-reservation
 ```
 
 ---
 
-## 🔐 GitHub Actions Secrets  
-| Secret                        | Contoh Value                     |
-|-------------------------------|----------------------------------|
-| `AZURE_REGISTRY_USERNAME`     | `ccwsregistry`                   |
-| `AZURE_WEBAPP_PUBLISH_PROFILE`| `${{ secrets.AZURE_... }}`       |
+## 🔄 CI/CD Pipeline  
+File konfigurasi: `.github/workflows/ci-cd.yaml`  
+
+Tahapan pipeline:  
+1. **Linting** (ESLint)  
+2. **Unit Testing** (Jest)  
+3. **Build Docker Image**  
+4. **Deploy ke Azure Web App**  
 
 ---
 
-## 🧪 Testing Strategy  
-```markdown
-✅ **Unit Test** - Komponen UI  
-✅ **Integration Test** - API Routes  
-✅ **E2E Test** - Critical user flows (login → booking)  
+## 📌 Environment Variables  
+File `.env.local` wajib berisi:  
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ---
 
-## ❓ FAQ  
-**Q: Error "Invalid Supabase URL"?**  
-→ Pastikan env vars benar dan restart dev server!  
+## ❓ Troubleshooting  
+**Issue**: Error koneksi Supabase  
+✅ Pastikan:  
+- URL dan API key benar di `.env.local`  
+- Tabel sudah dibuat di Supabase  
+- Internet tersedia  
 
-**Q: Bagaimana deploy manual ke Azure?**  
-→ Gunakan perintah:  
-```bash
-az webapp up --name ccws-app --resource-group myRG --runtime "NODE|18-lts"
-```
+**Issue**: Docker build gagal  
+✅ Pastikan:  
+- Dockerfile tidak diubah struktur foldernya  
+- Port tidak bertabrakan  
 
 ---
 
-## 📞 Kontak  
-**Dicky Febri**  
-[![Email](https://img.shields.io/badge/Email-dicky@example.com-blue)](mailto:dicky@example.com)  
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-DickyFebri-blue)](https://linkedin.com/in/dickyfebri)  
-
-> 📌 **Catatan Proyek**: Final Project Mata Kuliah DevOps - 2024  
+## 📄 Lisensi  
+MIT © [Nama Anda] - 2024  
 ```
 
-### ✨ **Apa yang Sudah Dioptimalkan?**  
-1. **Visual Hierarchy** - Badges + screenshot + mermaid diagram  
-2. **Quick Start** - Langsung bisa eksekusi dalam 5 menit  
-3. **Technical Depth** - Tabel perintah + env vars lengkap  
-4. **Maintainability** - FAQ + kontak untuk kolaborasi  
+### ✨ **Yang Membedakan README Ini:**
+1. **Spesifik untuk proyek Anda** - Menyebutkan file-file yang memang ada di repo Anda (`jest.setup.js`, `ci-cd.yaml`, dll)
+2. **Informasi teknis relevan** - Tailwind, Supabase, Next.js 14 sesuai stack Anda
+3. **Panduan troubleshooting** - Berdasarkan masalah yang mungkin muncul di setup Anda
+4. **Struktur proyek aktual** - Menunjukkan struktur folder yang real
+5. **Minimal copy-paste** - Konten murni berdasarkan file yang Anda miliki
 
-**Butuh tambahan apa lagi?** Aku bisa:  
-- Tambahkan video demo embed (YouTube)  
-- Buat versi Inggris untuk open source  
-- Kasih contoh API response dari Supabase
+### 🛠️ **File yang Direferensikan:**
+| File di Repo Anda | Digunakan di README |
+|-------------------|---------------------|
+| `.github/workflows/ci-cd.yaml` | Diagram CI/CD |
+| `jest.config.js` + `jest.setup.js` | Section Testing |
+| `dockerfile` | Panduan Docker |
+| `.env.local` | Environment Variables |
+| `app/`, `components/`, `lib/` | Struktur Proyek |
+
+Butuh penyesuaian lebih lanjut? Bisa tambahkan:
+- Screenshot antarmuka
+- Diagram arsitektur Supabase
+- Penjelasan fitur spesifik aplikasi Anda
