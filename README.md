@@ -353,17 +353,271 @@ deploy:
 * **Scalability:** Azure Web App mendukung slot deployment & auto-scaling; image dapat dipromosikan tanpa downtime.
 ---
 
-## 🧪 Error / Issue GitHub Actions
+## ⚠️ Error / Issue GitHub Actions
+Dalam proses pengembangan dan penerapan pipeline CI/CD menggunakan GitHub Actions pada proyek ini, terdapat beberapa kendala dan error yang sempat terjadi. Dokumentasi ini bertujuan untuk mencatat permasalahan yang muncul beserta analisis penyebab dan solusi yang dilakukan. Dengan demikian, diharapkan dapat menjadi referensi bagi pengembang lain apabila menghadapi masalah serupa di masa mendatang.
+Siap, ini versi lengkapnya dengan penambahan tautan ke GitHub Actions untuk referensi error-nya:
 
-| Error                      | Penyebab Umum                 | Solusi                                  |
-| -------------------------- | ----------------------------- | --------------------------------------- |
-| `npm ci` failed            | Versi Node mismatch           | Pastikan `.nvmrc` dan `setup-node` sama |
-| `docker push` unauthorized | Salah credential ACR          | Periksa secret `AZURE_ACR_*`            |
-| `webapps-deploy` failed    | Publish profile tidak valid   | Re-download publish profile dari Azure  |
-| `next build` error         | Config atau ENV tidak lengkap | Cek `.env` dan `next.config.js`         |
+---
+### ❌ Error  `sh: 1: jest: not found`
+
+**Deskripsi Masalah:**
+Pada eksekusi perdana pipeline, proses `npm run test` gagal dijalankan karena `jest` tidak ditemukan di environment runner. Log error:
+
+```bash
+sh: 1: jest: not found
+```
+
+📍 [Lihat detail error di GitHub Actions](https://github.com/AryasatyaWidyatna/roomreservation/actions/runs/15559618252/job/43808428239)
+
+**Penyebab:**
+Error ini disebabkan oleh belum terinstallnya dependensi project, termasuk `jest`, sebelum menjalankan perintah `npm run test`.
+
+**Solusi:**
+✔️ Tambahkan step `npm install` sebelum `npm run test` agar semua dependensi terinstall:
+
+```yaml
+- name: Install dependencies
+  run: npm install
+```
+
+✔️ Pastikan juga `jest` tercantum di `devDependencies` pada `package.json`:
+
+```bash
+npm install --save-dev jest
+```
+
+**Status:**
+✅ Sudah diperbaiki — pipeline berhasil berjalan setelah step `npm install` ditambahkan dan `jest` terinstall dengan benar.
 
 ---
 
+### ❌ Error `sh: 1: next: not found`
+
+**Deskripsi Masalah:**
+Pipeline gagal saat menjalankan `npm run build` karena perintah `next` tidak dikenali oleh environment runner. Log error:
+
+```bash
+sh: 1: next: not found
+```
+
+📍 [Lihat detail error di GitHub Actions](https://github.com/AryasatyaWidyatna/roomreservation/actions/runs/15559800186)
+
+**Penyebab:**
+Error ini muncul karena dependensi project, termasuk framework **Next.js**, belum terinstall sebelum proses build dijalankan.
+
+**Solusi:**
+✔️ Sama seperti error sebelumnya, solusi utamanya adalah menambahkan step `npm install` sebelum step `npm run build`, agar semua dependensi, termasuk `next`, terinstall dengan baik.
+
+```yaml
+- name: Install dependencies
+  run: npm install
+```
+
+✔️ Pastikan juga bahwa `next` ada di `dependencies` atau `devDependencies` di `package.json`:
+
+```bash
+npm install next
+```
+
+**Status:**
+✅ Sudah diperbaiki — error ini tidak muncul lagi setelah `npm install` ditambahkan pada awal proses pipeline.
+
+---
+### ❌ Error `SyntaxError: Unexpected token, expected "," (8:22)`
+
+**Deskripsi Masalah:**
+Test unit gagal dijalankan karena error parsing syntax oleh Babel saat mengeksekusi file `page.test.jsx`. Log error mengarah ke bagian mock `next/link`:
+
+```js
+jest.mock('next/link', () => {
+  return ({ children }: { children: React.ReactNode }) => children;
+});
+```
+
+📍 [Lihat detail error di GitHub Actions](https://github.com/AryasatyaWidyatna/roomreservation/actions/runs/15585385944/job/43890167468)
+
+**Penyebab:**
+Jest dan Babel tidak mengenali anotasi tipe TypeScript (`: { children: React.ReactNode }`) karena file `page.test.jsx` masih berformat `.jsx`, bukan `.tsx`, dan tidak dikompilasi dengan dukungan TypeScript.
+
+**Solusi:**
+✔️ Ubah syntax menjadi compatible dengan JavaScript biasa, misalnya:
+
+```js
+jest.mock('next/link', () => {
+  return ({ children }) => children;
+});
+```
+
+Atau, jika ingin menggunakan TypeScript-style:
+
+1. Ubah ekstensi file menjadi `.tsx`
+2. Pastikan Jest dan Babel dikonfigurasi untuk mendukung TypeScript
+
+**Status:**
+✅ Sudah diperbaiki dengan menghapus anotasi tipe agar sesuai format JavaScript standar.
+
+---
+### ❌ Error `Jest encountered an unexpected token (JSX not enabled)`
+
+**Deskripsi Masalah**  
+Saat menjalankan `npm run test`, Jest gagal mem‐parse file **`app/page.jsx`** yang berisi JSX karena preset Babel untuk React belum diaktifkan.
+
+```bash
+SyntaxError: Support for the experimental syntax 'jsx' isn't currently enabled (52:5)
+...
+Add @babel/preset-react to the 'presets' section of your Babel config to enable transformation.
+````
+
+📍 [Detail log GitHub Actions](https://github.com/AryasatyaWidyatna/roomreservation/actions/runs/15586049222/job/43892419211)
+
+**Penyebab**
+Jest menggunakan Babel untuk mentransformasi file test, tetapi konfigurasi Babel (`babel.config.js`) belum menambahkan **`@babel/preset-react`** sehingga sintaks JSX di file `.jsx` tidak dikenali.
+
+**Solusi**
+
+1. **Pasang preset React**
+
+   ```bash
+   npm install --save-dev @babel/preset-react
+   ```
+2. **Perbarui `babel.config.js`**
+
+   ```js
+   module.exports = {
+     presets: [
+       '@babel/preset-env',
+       '@babel/preset-react',   // ➜ tambahkan baris ini
+     ],
+   };
+   ```
+3. Pastikan Jest membaca konfigurasi Babel yang sama (file `babel.config.js` berada di root repo).
+**Status**
+✅ **Fixed** — Setelah preset React ditambahkan dan pipeline dijalankan ulang, Jest berhasil mem-parse file JSX dan semua test lulus.
+
+---
+
+### ❌ Error `React is not defined` saat `next build`
+
+**Deskripsi Masalah**  
+Pipeline gagal saat menjalankan `npm run build` karena terjadi error saat proses **prerendering halaman `/not-found`**. Log menunjukkan bahwa **React tidak dikenali**:
+
+```bash
+ReferenceError: React is not defined
+````
+
+📍 [Detail log GitHub Actions](https://github.com/AryasatyaWidyatna/roomreservation/actions/runs/15587405115/job/43897234064)
+
+**Penyebab**
+File `app/_not-found/page.jsx` tidak menyertakan `import React from "react";`. Meskipun dengan Next.js 13+ (App Router), import `React` *tidak wajib* secara eksplisit, **hal ini tetap diperlukan saat JSX digunakan langsung dalam file JS tanpa transpiler seperti SWC aktif**.
+
+> SWC dinonaktifkan karena penggunaan custom `babel.config.js`:
+>
+> ```
+> Disabled SWC as replacement for Babel because of custom Babel configuration
+> ```
+
+**Solusi**
+Tambahkan baris berikut di paling atas file `app/_not-found/page.jsx`:
+
+```js
+import React from 'react';
+```
+
+**Status**
+✅ **Fixed** — Setelah menambahkan `import React` di file `_not-found`, pipeline berhasil menyelesaikan `next build`.
+
+---
+
+### ❌ Error Ke-6: `ReferenceError: React is not defined` saat `next build`
+
+**Deskripsi Masalah**  
+Build gagal pada proses **prerendering** halaman **`/admin/room`**. Log menunjukkan `React is not defined`.
+
+```bash
+Error occurred prerendering page "/admin/room"
+ReferenceError: React is not defined
+````
+
+📍 [Log lengkap GitHub Actions](https://github.com/AryasatyaWidyatna/roomreservation/actions/runs/15590268317/job/43907340149)
+
+**Penyebab**
+File **`app/admin/room/page.jsx`** memakai JSX tetapi tidak menyertakan `import React` di awal file. Karena SWC dinonaktifkan (custom `babel.config.js`), Babel mengharuskan import eksplisit.
+
+**Solusi**
+Tambahkan baris berikut di paling atas `app/admin/room/page.jsx`:
+
+```js
+import React from 'react';
+```
+
+**Status**
+✅ Fixed — Setelah menambahkan import di atas, proses `next build` berhasil tanpa error.
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+### ❌ Error: `Cannot find module '@/lib/supabaseClient'`
+
+**Deskripsi Masalah:**
+Saat menjalankan perintah `npm run test` di GitHub Actions, salah satu file test yaitu `app/login/page.test.jsx` gagal karena tidak dapat menemukan module `'@/lib/supabaseClient'`.
+
+```bash
+Cannot find module '@/lib/supabaseClient' from 'app/login/page.test.jsx'
+```
+
+📍 [Lihat detail error di GitHub Actions](https://github.com/AryasatyaWidyatna/roomreservation/actions/runs/15697331270)
+
+**Penyebab:**
+Import path `'@/lib/supabaseClient'` menggunakan alias `'@'` yang biasanya didefinisikan di `jsconfig.json`. Namun, secara default, environment GitHub Actions dan Jest tidak mengenali alias ini kecuali dikonfigurasi secara eksplisit.
+
+**Solusi:**
+Menambahkan konfigurasi `moduleNameMapper` agar Jest dapat mengenali alias `'@'`:
+
+1. Pastikan di `jest.config.js` atau `jest.config.mjs` terdapat:
+
+   ```js
+   module.exports = {
+     // konfigurasi lainnya...
+     moduleNameMapper: {
+       '^@/(.*)$': '<rootDir>/$1',
+     },
+   };
+   ```
+
+2. Pastikan juga bahwa struktur direktori proyek sesuai, yakni folder `lib` berada langsung di root repository.
+
+**Status:**
+✅ Sudah diperbaiki — pipeline berhasil melewati tahap `test` setelah konfigurasi di atas diterapkan.
+
+
+
+---
 ## 🧑‍💻 Local Development
 
 ```bash
