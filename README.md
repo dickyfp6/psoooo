@@ -1,7 +1,3 @@
-**🚀 Final Version - Supercharged README.md**  
-*(Tailored for CCWS Reservation Room Project - CI/CD + Next.js + Supabase)*  
-
-```markdown
 # 🏨 CCWS Reservation Room | Next.js + Supabase  
 [![CI/CD Pipeline](https://github.com/dickyfebri/ccws-reservation/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/dickyfebri/ccws-reservation/actions) 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)  
