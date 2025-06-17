@@ -6,8 +6,9 @@
 
 Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadwal dan ketersediaan ruangan. Aplikasi ini dibangun menggunakan **Next.js** dan di-*deploy* secara otomatis melalui pipeline **CI/CD GitHub Actions ke Azure App Service**.
 
-🔗 **Live Demo**: [CCWS Room Reservation (Live Site)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)  
 📦 **Repository**: [CCWS Room Reservation (GitHub Repo)](https://github.com/AryasatyaWidyatna/roomreservation)
+🔗 **Live Demo**: [CCWS Room Reservation (Live Site)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)  
+
 [![Preview](https://raw.githubusercontent.com/dickyfp6/psoooo/main/preview.png)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)
 
 ---
@@ -23,7 +24,6 @@ Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadw
   - Otomatisasi build, test, dan deploy
   - Monitoring kesehatan deployment
   - Fleksibilitas untuk dikembangkan lebih lanjut (eks: login, integrasi SSO)
-
 ---
 
 ## 🛠️ CI/CD Pipeline Architecture
@@ -51,13 +51,13 @@ graph TD
     F --> F1[Checkout Repo]
     F1 --> F2[Deploy to Azure Web App]
 ````
-
+---
 
 ## ⚙️ Alur Kerja Pipeline CI/CD
 
 Pipeline ini dibagi menjadi **tiga tahap utama**: `test`, `build`, dan `deploy`. Masing-masing job memiliki tanggung jawab spesifik dan saling bergantung satu sama lain untuk memastikan integritas sistem sebelum live.
 
----
+-
 
 ### 🧪 **Job: test** (Continuous Integration)
 
