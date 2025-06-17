@@ -528,7 +528,7 @@ import React from 'react';
 
 ---
 
-### ❌ Error Ke-6: `ReferenceError: React is not defined` saat `next build`
+### ❌ Error `ReferenceError: React is not defined` saat `next build`
 
 **Deskripsi Masalah**  
 Build gagal pada proses **prerendering** halaman **`/admin/room`**. Log menunjukkan `React is not defined`.
@@ -554,34 +554,6 @@ import React from 'react';
 ✅ Fixed — Setelah menambahkan import di atas, proses `next build` berhasil tanpa error.
 
 ---
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
----
-
 ### ❌ Error: `Cannot find module '@/lib/supabaseClient'`
 
 **Deskripsi Masalah:**
@@ -615,7 +587,35 @@ Menambahkan konfigurasi `moduleNameMapper` agar Jest dapat mengenali alias `'@'`
 **Status:**
 ✅ Sudah diperbaiki — pipeline berhasil melewati tahap `test` setelah konfigurasi di atas diterapkan.
 
+---
+### ⚠️ Masalah yang Mungkin Dihadapi
 
+Saat melakukan testing, penting untuk **tidak menguji seluruh halaman atau layout secara menyeluruh**, terutama ketika sebagian besar elemen hanya bersifat visual atau statis.
+
+**Contoh kasus:**  
+Pada komponen halaman utama terdapat bagian seperti berikut:
+
+```jsx
+{/* Glassmorphism Card */}
+<div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl">
+  ...
+  <Link href="/register">
+    <button className="group ...">
+      Regist sebagai Client
+    </button>
+  </Link>
+</div>
+````
+
+Dalam kasus ini, cukup **fokus menguji tombol "Regist sebagai Client"**, karena:
+
+* Tombol tersebut **berpengaruh pada navigasi** ke proses registrasi.
+* Bagian lain seperti `<h1>`, `<p>`, atau efek visual (`blur`, `gradient`, dll) bersifat presentasional dan tidak perlu dites fungsionalitasnya.
+
+🚫 *Kesalahan umum:* Melakukan test untuk seluruh struktur `<div>` dan elemen visual secara berlebihan.
+
+✅ *Solusi tepat:*
+Lakukan pengujian terhadap komponen yang memicu aksi penting (misal: navigasi, form submission, interaksi user) agar proses testing **lebih efisien dan tidak redundant**.
 
 ---
 ## 🧑‍💻 Local Development
