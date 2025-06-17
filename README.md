@@ -8,7 +8,7 @@ Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadw
 
 🔗 **Live Demo**: [CCWS Room Reservation (Live Site)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)  
 📦 **Repository**: [CCWS Room Reservation (GitHub Repo)](https://github.com/AryasatyaWidyatna/roomreservation)
-[![Preview](https://raw.githubusercontent.com/dickyfp6/psoooo/edit/main/screenshot.png)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)
+[![Preview](https://raw.githubusercontent.com/dickyfp6/psoooo/main/preview.png)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)
 
 ---
 
