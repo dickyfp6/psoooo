@@ -1,13 +1,14 @@
 # 🏨 CCWS Room Reservation
 
-[![CI/CD](https://github.com/AryasatyaWidyatna/roomreservation/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/AryasatyaWidyatna/roomreservation/actions)
+![CI/CD](https://github.com/AryasatyaWidyatna/roomreservation/actions/workflows/ci-cd.yaml/badge.svg)
 [![Next.js](https://img.shields.io/badge/Next.js-13-blue)](https://nextjs.org/)
 [![Deploy to Azure](https://img.shields.io/badge/Azure-App%20Service-blue)](https://azure.microsoft.com)
 
 Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadwal dan ketersediaan ruangan. Aplikasi ini dibangun menggunakan **Next.js** dan di-*deploy* secara otomatis melalui pipeline **CI/CD GitHub Actions ke Azure App Service**.
 
-🔗 **Live Demo**: [ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)  
-📦 **Repository**: [github.com/AryasatyaWidyatna/roomreservation](https://github.com/AryasatyaWidyatna/roomreservation)
+🔗 **Live Demo**: [CCWS Room Reservation (Live Site)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)  
+📦 **Repository**: [CCWS Room Reservation (GitHub Repo)](https://github.com/AryasatyaWidyatna/roomreservation)
+[![Preview](https://raw.githubusercontent.com/USERNAME/REPO/main/path/to/screenshot.png)](https://ccwsreserve-ftcsf2fefghphxc2.indonesiacentral-01.azurewebsites.net)
 
 ---
 
@@ -15,6 +16,7 @@ Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadw
 
 - **Lingkup**:
   - Frontend menggunakan Next.js
+  - Backend menggunakan Supabase
   - CI/CD menggunakan GitHub Actions
   - Deployment ke Azure App Service dengan Docker container
 - **Tujuan**:
@@ -27,13 +29,27 @@ Sistem pemesanan ruang yang digunakan di lingkungan **CCWS** untuk mengatur jadw
 ## 🛠️ CI/CD Pipeline Architecture
 
 ```mermaid
-flowchart LR
-    A[Developer Push Code] --> B[GitHub Repo]
-    B --> C[CI/CD Pipeline (GitHub Actions)]
-    C --> D[Build Docker Image]
-    D --> E[Push to Azure Container Registry]
-    E --> F[Deploy to Azure App Service]
-    F --> G[User Access Web App]
+graph TD
+    A[Developer Push Code] --> B[GitHub Repository]
+    B --> C[CI/CD Pipeline]
+
+    C --> D[Test Job]
+    D --> D1[Checkout Repo]
+    D1 --> D2[Setup Node.js v18]
+    D2 --> D3[Install Dependencies]
+    D3 --> D4[Run Tests]
+
+    D --> E[Build Job]
+    E --> E1[Checkout Repo]
+    E1 --> E2[Setup Node.js v18]
+    E2 --> E3[Install Dependencies]
+    E3 --> E4[Build Next.js App]
+    E4 --> E5[Login to ACR]
+    E5 --> E6[Build & Push Docker Image]
+
+    E --> F[Deploy Job]
+    F --> F1[Checkout Repo]
+    F1 --> F2[Deploy to Azure Web App]
 ````
 
 
@@ -106,8 +122,6 @@ Job `deploy` adalah tahap akhir yang dilakukan setelah build sukses. Proses ini 
    * **publish-profile**: Menggunakan `AZURE_WEBAPP_PUBLISH_PROFILE` dari GitHub Secrets
    * **images**: `nextjs-app:latest` dari `AZURE_REGISTRY_URL`
 
-👉 Hasil dari tahap ini adalah **aplikasi dapat diakses secara publik** melalui Azure Web App yang telah dikonfigurasi.
----
 
 ## ⚙️ Implementasi Pipeline
 
@@ -127,34 +141,63 @@ roomreservation/
 ### Cuplikan `ci-cd.yml`
 
 ```yaml
-name: CI/CD Pipeline
+name: Next.js CI
 
 on:
   push:
     branches: [main]
 
 jobs:
-  build-and-deploy:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - run: npm ci
-      - run: npm run build
-      - name: Build & push Docker image
-        run: |
-          docker build -t <your-acr>.azurecr.io/ccwsapp:latest .
-          echo "${{ secrets.AZURE_ACR_PASSWORD }}" | docker login <your-acr>.azurecr.io -u ${{ secrets.AZURE_ACR_USERNAME }} --password-stdin
-          docker push <your-acr>.azurecr.io/ccwsapp:latest
-      - name: Deploy to Azure
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm run test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Next.js app
+        run: npm run build
+      - name: Check Next.js version
+        run: npx next --version
+      - name: Log in to Azure Container Registry
+        run: echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login ${{ secrets.AZURE_REGISTRY_URL }} -u ${{ secrets.AZURE_REGISTRY_USERNAME }} --password-stdin
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest .
+      - name: Push Docker image to ACR
+        run: docker push ${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ccwsreserve
+          app-name: CCWSRESERVE
+          slot-name: Production
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          images: '<your-acr>.azurecr.io/ccwsapp:latest'
+          images: '${{ secrets.AZURE_REGISTRY_URL }}/nextjs-app:latest'
 ```
 
 ---
@@ -181,17 +224,12 @@ npm run dev
 
 ---
 
-## 📜 License
-
-This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
-
----
-
 ## 🙋‍♀️ Maintainers
 
-* Arya Satya Widyatna
-* Dicky Febri (DevOps Engineer)
+* Arayzi Rayyansyah       (5026221194)
+* Dicky Febri Primadhani  (5026221036)
+* M. Rafi Novyansyah      (5026221171)
+* Arya Satya Widyatna     (5026221207)
 
 ---
 
-Kalau kamu ingin aku bantu generate `README.md`-nya langsung dalam bentuk file siap pakai atau mau ditambahin bagian *env setup*, tinggal bilang aja ya!
